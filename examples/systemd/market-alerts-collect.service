@@ -1,0 +1,15 @@
+# Collect every source, then judge and post midday alerts. The alert step
+# needs Claude Code for judged posts (auto-post channels work without it);
+# its leading "-" means an alert failure never fails the collection.
+[Unit]
+Description=Stock Research Bot - alerts collector and midday alerts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+ExecStart=/usr/bin/python3 %h/stock-research-bot/market_alerts_collect.py
+ExecStart=-/usr/bin/python3 %h/stock-research-bot/market_alerts_alert.py
+TimeoutStartSec=15min

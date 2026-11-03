@@ -1,0 +1,17 @@
+# secrets and local settings
+.env
+*.env
+!.env.example
+local_settings.py
+local_digest_prompt.md
+local_weekly_prompt.md
+
+# runtime data
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+__pycache__/
+*.pyc

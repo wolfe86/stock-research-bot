@@ -1,0 +1,13 @@
+# Optional. Needs Claude Code installed and signed in for the written update;
+# without it, run market_alerts_weekly.py --bundle-only.
+[Unit]
+Description=Stock Research Bot - alerts weekly update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+ExecStart=/usr/bin/python3 %h/stock-research-bot/market_alerts_weekly.py
+TimeoutStartSec=60min

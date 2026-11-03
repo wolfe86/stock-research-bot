@@ -1,0 +1,11 @@
+# Every 15 minutes, so a market-moving post reaches the channel within ~15 min.
+[Unit]
+Description=Run the alerts collector every 15 minutes
+
+[Timer]
+OnCalendar=*:05/15
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

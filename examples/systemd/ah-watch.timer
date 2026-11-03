@@ -1,0 +1,14 @@
+# Weekdays at 20:05 LOCAL time -- set it to just after 20:00 ET, the end of the
+# after-hours session, in your zone (19:05 in US Central, for example).
+# No catch-up (Persistent=false): a run after midnight would read the wrong
+# session.
+[Unit]
+Description=Run the after-hours watch after the after-hours close
+
+[Timer]
+OnCalendar=Mon-Fri *-*-* 20:05:00
+Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

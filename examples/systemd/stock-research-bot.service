@@ -1,0 +1,21 @@
+# User unit for the Telegram command bot (long-running). Install:
+#   cp stock-research-bot.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now stock-research-bot.service
+# Edit the paths if you cloned somewhere other than ~/stock-research-bot.
+# On a server with no login session, run `loginctl enable-linger $USER` once.
+[Unit]
+Description=Stock Research Bot - Telegram command bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+ExecStart=/usr/bin/python3 %h/stock-research-bot/bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,13 @@
+# Fridays at 18:00 LOCAL time, after the close.
+# Change the time BEFORE the first enable. Editing OnCalendar later on a
+# Persistent=true timer can fire a "missed" run as soon as you daemon-reload.
+[Unit]
+Description=Run the alerts weekly update on Fridays
+
+[Timer]
+OnCalendar=Fri *-*-* 18:00:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

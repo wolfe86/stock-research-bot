@@ -1,0 +1,15 @@
+# Optional. Needs Claude Code installed and signed in (CLAUDE_BIN, default
+# `claude` on PATH). Without it, run market_alerts_digest.py --bundle-only.
+[Unit]
+Description=Stock Research Bot - alerts evening digest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+# Collect once more first, so the digest includes the last quarter hour.
+ExecStartPre=/usr/bin/python3 %h/stock-research-bot/market_alerts_collect.py
+ExecStart=/usr/bin/python3 %h/stock-research-bot/market_alerts_digest.py
+TimeoutStartSec=55min

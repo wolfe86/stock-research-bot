@@ -1,0 +1,13 @@
+# The evening after-hours watch: picks the after-hours runner for the next
+# morning's report and posts the evening digest (PDF if available).
+[Unit]
+Description=Stock Research Bot - after-hours watch and evening digest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+ExecStart=/usr/bin/python3 %h/stock-research-bot/ah_watch.py
+TimeoutStartSec=30min

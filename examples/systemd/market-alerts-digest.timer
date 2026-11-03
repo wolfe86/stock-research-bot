@@ -1,0 +1,14 @@
+# Every day at 21:00 LOCAL time: deals, filings and commentary do not stop at
+# weekends.
+# Change the time BEFORE the first enable. Editing OnCalendar later on a
+# Persistent=true timer can fire a "missed" run as soon as you daemon-reload.
+[Unit]
+Description=Run the alerts evening digest
+
+[Timer]
+OnCalendar=*-*-* 21:00:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

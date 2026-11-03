@@ -1,0 +1,15 @@
+# The morning premarket report: markdown to SRB_OUTPUT_DIR/daily, digest to
+# the Telegram channel, then an optional PDF (needs markdown + weasyprint; the
+# leading "-" means a PDF failure never marks the report itself as failed).
+[Unit]
+Description=Stock Research Bot - premarket report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/stock-research-bot.env
+WorkingDirectory=%h/stock-research-bot
+ExecStart=/usr/bin/python3 %h/stock-research-bot/premarket_report.py
+ExecStartPost=-/usr/bin/python3 %h/stock-research-bot/report_pdf.py
+TimeoutStartSec=15min
