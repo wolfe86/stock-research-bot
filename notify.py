@@ -24,6 +24,7 @@ Stdlib only.
 import json
 import mimetypes
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -37,6 +38,29 @@ API_DOC = "https://api.telegram.org/bot{token}/sendDocument"
 
 # Telegram's hard cap is 4096; leave room for a continuation marker.
 LIMIT = 3900
+
+
+# A Telegram bot token: <bot id>:<35-character secret>.
+TOKEN_RE = re.compile(r"\b\d{6,12}:[A-Za-z0-9_-]{30,}\b")
+
+
+def leaks_secret(text):
+    """
+    True if the text carries the bot token, or anything shaped like one.
+
+    The last line of defence for posts written from strangers' text (the
+    alerts digest and weekly): whatever went wrong upstream, a credential
+    never reaches a public channel.
+    """
+    if not text:
+        return False
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if token and token in text:
+        return True
+    secret = token.split(":", 1)[-1] if ":" in token else ""
+    if len(secret) >= 20 and secret in text:
+        return True
+    return bool(TOKEN_RE.search(text))
 
 
 def esc(v):
@@ -73,6 +97,9 @@ def send(text, dry=False, parse_mode="HTML", split=False, preview=False):
     Never raises: callers are reports whose output is already safely on disk,
     so a Telegram outage must cost the post and nothing else.
     """
+    if leaks_secret(text):
+        print("  ! Telegram post REFUSED: it contains a bot token", file=sys.stderr)
+        return False
     if dry:
         print("\n--- telegram (not sent) ---\n" + text)
         return True
@@ -140,6 +167,11 @@ def send_document(filename, content, caption=None, dry=False):
 
 
 def _post_document(token, chat, filename, content, caption=None, reply_to=None):
+    text = content if isinstance(content, str) else content.decode("utf-8", "ignore")
+    if leaks_secret(caption) or leaks_secret(text):
+        print(f"  ! sendDocument REFUSED: {filename} contains a bot token",
+              file=sys.stderr)
+        return False
     boundary = "----srb" + os.urandom(8).hex()
     if isinstance(content, str):
         content = content.encode("utf-8")

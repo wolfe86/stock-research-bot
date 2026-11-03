@@ -30,11 +30,49 @@ from pathlib import Path
 import markdown
 from weasyprint import HTML
 
+try:                                    # WeasyPrint 66 and later
+    from weasyprint.urls import URLFetcher as _URLFetcher
+except ImportError:                     # older releases: a plain function
+    _URLFetcher = None
+    from weasyprint import default_url_fetcher as _default_fetch
+
 import settings
 
 DAILY = settings.OUTPUT_DIR / "daily"
 ATTACH = settings.OUTPUT_DIR / "attachments"
 OUT_DIR = settings.OUTPUT_DIR / "pdf"
+
+
+def _allowed(url):
+    """Only image files in the attachments folder. Reports carry headlines
+    written by strangers, and markdown passes raw HTML through, so without
+    this a headline could pull a local file (or an internal URL) into a PDF
+    that is then posted to Telegram."""
+    if not url.startswith("file:"):
+        return False
+    from urllib.parse import unquote, urlparse
+    path = Path(unquote(urlparse(url).path)).resolve()
+    return path.is_relative_to(ATTACH.resolve()) and path.suffix.lower() in (
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")
+
+
+if _URLFetcher is not None:
+    class _Fetcher(_URLFetcher):
+        def fetch(self, url, headers=None):
+            if not _allowed(url):
+                raise ValueError(f"blocked: {url[:80]}")
+            return super().fetch(url, headers)
+
+    def url_fetcher():
+        return _Fetcher()
+else:
+    def _fetch(url, *a, **kw):
+        if not _allowed(url):
+            raise ValueError(f"blocked: {url[:80]}")
+        return _default_fetch(url, *a, **kw)
+
+    def url_fetcher():
+        return _fetch
 
 # Table columns whose +/- values are moves, coloured green/red. Everything else
 # (an economic "Expected -0.2%", say) is a level and stays ink-coloured.
@@ -272,7 +310,8 @@ def render(md_path):
         f"<div class='tiles'>{tile_html}</div>{body}</body></html>")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     pdf = OUT_DIR / md_path.with_suffix(".pdf").name
-    HTML(string=page, base_url=str(md_path.parent)).write_pdf(pdf)
+    HTML(string=page, base_url=str(md_path.parent),
+         url_fetcher=url_fetcher()).write_pdf(pdf)
     return pdf
 
 

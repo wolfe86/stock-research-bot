@@ -52,7 +52,7 @@ A screen, not an analysis. Not investment advice.
 
 - **Ticker validation.** Every ticker is checked against a strict pattern (`^[A-Za-z][A-Za-z.\-]{0,6}$`) before any lookup. Nothing a user types reaches a shell or a file path, and nothing reaches a URL without passing that check.
 - **Per-user rate limit.** Five commands per user per minute; extra commands are dropped silently, so a flood cannot amplify itself into replies.
-- **Chat allowlist.** The bot answers only in `TELEGRAM_GROUP_ID` and in direct messages from `TELEGRAM_OWNER_ID`. Set at least one: with neither set it answers in any chat it is added to.
+- **Chat allowlist.** The bot answers only in `TELEGRAM_GROUP_ID` and in direct messages from `TELEGRAM_OWNER_ID`. Set at least one: with neither set the bot refuses to start (pass `--allow-all-chats` to override).
 - **Unknown commands are ignored.** The bot never chats, so it cannot be drawn into a conversation.
 - **One bad lookup never takes it down.** Each command is wrapped; a failure costs that reply ("could not build a valuation for X") and nothing else.
 - **Results go back where the command came from**, never to the broadcast channel.

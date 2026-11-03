@@ -295,7 +295,7 @@ def last_close(now_et):
 def pr_lines(tkr, prs):
     L = []
     for n in prs:
-        title = n["title"].replace("[", "(").replace("]", ")")
+        title = esc(n["title"]).replace("[", "(").replace("]", ")")
         L.append(f"- **{tkr}** · {n['dt']:%a %H:%M} ET · [{title}]({n['url']}) "
                  f"*({n['source']})*")
     return L

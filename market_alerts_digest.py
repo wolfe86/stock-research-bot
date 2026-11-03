@@ -164,12 +164,24 @@ def allowed_tools():
     # "//" = absolute path in Claude Code permission rules (the paths here are
     # absolute, so "/" + path gives it). Anything not listed is denied under
     # --permission-mode dontAsk: no Bash, no web.
-    rules = ["Read", "Glob", "Grep",
-             f"Edit(/{DIGESTS}/**)",
+    # No bare Read/Glob/Grep: those would let the run read any file on the
+    # machine, and it reads strangers' text. It may read its working folders
+    # (the cwd and every --add-dir) and, below, each read-first file by name.
+    rules = [             f"Edit(/{DIGESTS}/**)",
              f"Edit(/{WORK}/out/**)"]
     if FOCUS_AREA:
         rules.append(f"Edit(/{FOCUS_AREA}/**)")
+    rules += [f"Read(/{Path(p).expanduser().resolve()})" for p in F.READ_FIRST]
     return rules
+
+
+def denied_tools():
+    """Never allowed, whatever any settings file says. Deny beats allow."""
+    return ["Bash", "WebFetch", "WebSearch", "Agent",
+            # The credentials, should any rule above ever reach them.
+            f"Read(/{HERE}/.env)", f"Read(/{HERE}/*.env)",
+            f"Read(/{settings.ENV_FILE})", "Read(~/.ssh/**)",
+            "Read(~/.config/**)", "Read(~/.claude/**)", "Read(~/.gnupg/**)"]
 
 
 def extra_dirs():
@@ -177,8 +189,8 @@ def extra_dirs():
     dirs = {str(WORK)}
     if FOCUS_AREA:
         dirs.add(str(FOCUS_AREA))
-    for p in F.READ_FIRST:
-        dirs.add(str(Path(p).expanduser().parent))
+    # READ_FIRST files are allowed one by one in allowed_tools(), not by adding
+    # their parent folder: a note in ~ would otherwise open the whole home.
     return sorted(dirs)
 
 
@@ -211,7 +223,7 @@ def run_claude(bundle, date, tg_out):
     cmd += ["--allowedTools", *allowed_tools(),
             # Deny beats allow: a user or project settings file may allow some
             # Bash commands, and this run reads strangers' text.
-            "--disallowedTools", "Bash", "WebFetch", "WebSearch", "Agent",
+            "--disallowedTools", *denied_tools(),
             "--", prompt]
     log(f"claude -p ({MODEL}) starting")
     try:

@@ -41,8 +41,9 @@ Environment (.env, ~/.config/stock-research-bot.env, or the process env):
     TELEGRAM_OWNER_ID    optional, allows that user to DM the bot
     SEC_USER_AGENT       required by /pillars, /price and /fundamentals
 
-If neither TELEGRAM_GROUP_ID nor TELEGRAM_OWNER_ID is set, the allowlist is
-empty and the bot answers in any chat it is added to -- set at least one.
+If neither TELEGRAM_GROUP_ID nor TELEGRAM_OWNER_ID is set the bot refuses to
+start, because an empty allowlist would answer in any chat it is added to.
+Run it with --allow-all-chats if that is really what you want.
 
 Stdlib only.
 """
@@ -396,6 +397,11 @@ def main():
         settings.sec_user_agent()
     except RuntimeError as e:
         print(f"! {e}", file=sys.stderr)
+        return 2
+    if not allowed_chats() and "--allow-all-chats" not in sys.argv:
+        print("! Neither TELEGRAM_GROUP_ID nor TELEGRAM_OWNER_ID is set, so the "
+              "bot would answer in any chat it is added to. Set at least one, "
+              "or start it with --allow-all-chats.", file=sys.stderr)
         return 2
     me = api("getMe") or {}
     print(f"=== bot up as @{me.get('username','?')} · "
